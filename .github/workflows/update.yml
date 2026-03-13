@@ -1,0 +1,34 @@
+name: Actualizador Mensual IMDb
+
+# Cuándo se ejecuta: El día 1 de cada mes a las 03:00 AM
+on:
+  schedule:
+    - cron: "0 3 1 * *"
+  workflow_dispatch: # Esto añade un botón para que puedas ejecutarlo a mano cuando quieras probar
+
+# Permisos para que el bot pueda guardar los JSON en tu repositorio
+permissions:
+  contents: write
+
+jobs:
+  procesar-datos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Ejecutar el script procesador
+        run: python update_data.py
+
+      - name: Guardar los JSON generados en GitHub
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add api/*.json
+          git commit -m "Actualización mensual de episodios IMDb" || echo "No hay cambios para guardar"
+          git push
