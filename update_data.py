@@ -16,7 +16,7 @@ FILE_RATINGS = "ratings.tsv.gz"
 # Carpeta de salida para los JSON
 OUTPUT_DIR = "api"
 PREFIX_LENGTH = 5  # Agruparemos por los primeros 5 caracteres (ej. "tt111")
-MIN_VOTES = 50     # Mínimo de votos para que la nota sea fiable
+MIN_VOTES = 5      # BAJADO DE 50 A 5 PARA INCLUIR SERIES ESPAÑOLAS Y CLÁSICAS
 
 def download_file(url, filename):
     print(f"Descargando {url}...")
@@ -32,9 +32,10 @@ def process_data():
         for row in reader:
             if len(row) == 3:
                 tconst, rating, num_votes = row
-                # Filtrar capítulos con muy pocos votos
+                # Filtrar capítulos con muy pocos votos (ahora mucho más permisivo)
                 if num_votes.isdigit() and int(num_votes) >= MIN_VOTES:
-                    ratings[tconst] = float(rating)
+                    # Guardamos la nota y los votos para desempatar luego
+                    ratings[tconst] = (float(rating), int(num_votes))
 
     # 2. Agrupar capítulos por serie
     print("Procesando episodios...")
@@ -49,7 +50,8 @@ def process_data():
                 # Si el capítulo tiene nota, y tiene temporada/episodio válidos
                 if tconst in ratings and season.isdigit() and episode.isdigit():
                     series_data[parent_tconst].append({
-                        "r": ratings[tconst],
+                        "r": ratings[tconst][0],
+                        "v": ratings[tconst][1], # Votos (para desempate interno)
                         "s": int(season),
                         "e": int(episode)
                     })
@@ -59,10 +61,15 @@ def process_data():
     sharded_data = defaultdict(dict)
     
     for series_id, episodes in series_data.items():
-        # Ordenar episodios por nota de mayor a menor
-        episodes.sort(key=lambda x: x["r"], reverse=True)
+        # Ordenar episodios por nota de mayor a menor y, en caso de empate, por mayor cantidad de votos
+        episodes.sort(key=lambda x: (x["r"], x["v"]), reverse=True)
+        
         top5 = episodes[:5]
         
+        # Eliminar el dato de los votos ('v') antes de guardar para no engordar los JSON
+        for ep in top5:
+            del ep["v"]
+            
         # Obtener el prefijo (ej. de tt1119644 -> tt111)
         prefix = series_id[:PREFIX_LENGTH]
         sharded_data[prefix][series_id] = top5
