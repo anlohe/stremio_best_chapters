@@ -4,11 +4,15 @@ name: Actualizador Mensual IMDb
 on:
   schedule:
     - cron: "0 3 1 * *"
-  workflow_dispatch: # Esto añade un botón para que puedas ejecutarlo a mano cuando quieras probar
+  workflow_dispatch:
 
 # Permisos para que el bot pueda guardar los JSON en tu repositorio
 permissions:
   contents: write
+
+# Forzamos a GitHub a usar la versión moderna de Node.js para quitar el warning
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   procesar-datos:
