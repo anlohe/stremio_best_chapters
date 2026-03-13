@@ -16,7 +16,7 @@ FILE_RATINGS = "ratings.tsv.gz"
 # Carpeta de salida para los JSON
 OUTPUT_DIR = "api"
 PREFIX_LENGTH = 5  # Agruparemos por los primeros 5 caracteres (ej. "tt111")
-MIN_VOTES = 5      # BAJADO DE 50 A 5 PARA INCLUIR SERIES ESPAÑOLAS Y CLÁSICAS
+MIN_VOTES = 1      # BAJADO DE 50 A 1 PARA INCLUIR SERIES ESPAÑOLAS Y CLÁSICAS
 
 def download_file(url, filename):
     print(f"Descargando {url}...")
